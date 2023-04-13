@@ -1,27 +1,180 @@
-import java.util.Arrays;
+import java.util.*;
 
 public class Project2 {
     /*
-     * Conclsion: With these implementations and using an Integer array both Mergesort and Quicksort
-     * are equally efficent
+     * Results:
+     * 
+For a random array of length 1000
+Mergesort time: 2 ms
+Quicksort time: 3 ms
+Mergesort is faster.
+
+For a random array of length 10000
+Mergesort time: 4 ms
+Quicksort time: 81 ms
+Mergesort is faster.
+
+For a random array of length 100000
+Mergesort time: 132 ms
+Quicksort time: 7896 ms
+Mergesort is faster.
+
+For an almost sorted array of length 1000
+Swaps = 10
+Mergesort time: 0 ms
+Quicksort time: 0 ms
+Mergesort and Quicksort are equally efficient.
+
+For an almost sorted array of length 10000
+Swaps = 100
+Mergesort time: 8 ms
+Quicksort time: 47 ms
+Mergesort is faster.
+
+For an almost sorted array of length 100000
+Swaps = 1000
+Mergesort time: 94 ms
+Quicksort time: 3613 ms
+Mergesort is faster.
+
+CONCLUSION: Mergesort is the quicker and more efficent algorithm
      */
     public static void main(String[] args) {
-        long t1, t2;
+        randomTester(1000, 10000, 100000);
+        almostSortedTester(1000, 10000, 100000);
 
-        Integer[] arr = {5, 2, 1, 6, 3, 7, 10, 12, 34, 23, 4, 97, 43 , 54, 34, 53,24, 52, 75, 100, 454, 34, 422,564, 345, 565, 965, 294, 6323, 3234, 543, 434, 423, 324, 32, 354};
-        Integer[] arr2 = arr;
+        System.out.println("FOR EXTRA CREDIT");
+        int[][] points = {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}, {8, 8}, {9, 9}, {10, 10}, {11, 11}, {12, 12}, {13, 13}, {14, 14}};
+        List<List<Integer>> collinearPoints = findCollinearPoints(points);
+        System.out.println(collinearPoints);
+    }
 
-        t1 = System.currentTimeMillis();
-        arr = mergesort(arr);
-        t2 = System.currentTimeMillis();
-        System.out.println(Arrays.toString(arr));
-        System.out.println(t2-t1);
+    //Helper funcs
+    private static void randomTester(int l1, int l2, int l3) {
+        long t1, t2, mergeTime, quickTime;
+        int length = 0;
+        Integer[] arr1 = {};
+        Integer[] arr2 = {};
 
-        t1 = System.currentTimeMillis();
-        arr2 = Quicksort(arr2);
-        t2 = System.currentTimeMillis();
-        System.out.println(Arrays.toString(arr2));
-        System.out.println(t2-t1);
+        for(int i = 1; i <= 3; i ++) {
+            if (i==1) {
+                length = l1;
+            }
+            if (i==2) {
+                length = l2;
+            }
+            if (i ==3) {
+                length = l3;
+            }
+            arr1 = generateRandomArray(length);
+            arr2 = arr1;
+
+            t1 = System.currentTimeMillis();
+            mergesort(arr1);
+            t2 = System.currentTimeMillis();
+            mergeTime = t2-t1;
+
+            t1 = System.currentTimeMillis();
+            Quicksort(arr1);
+            t2 = System.currentTimeMillis();
+            quickTime = t2-t1;
+
+            System.out.println("For a random array of length " + length);
+            System.out.printf("Mergesort time: %d ms\n", mergeTime);
+            System.out.printf("Quicksort time: %d ms\n", quickTime);
+
+            if (mergeTime < quickTime) {
+                System.out.println("Mergesort is faster.\n");
+            } else if (quickTime < mergeTime) {
+                System.out.println("Quicksort is faster.\n");
+            } else {
+                System.out.println("Mergesort and Quicksort are equally efficient.\n");
+            }
+        }
+    }
+
+    private static void almostSortedTester(int l1, int l2, int l3) {
+        long t1, t2, mergeTime, quickTime;
+        int length = 0;
+        Integer[] arr1 = {};
+        Integer[] arr2 = {};
+
+        for(int i = 1; i <= 3; i ++) {
+            if (i==1) {
+                length = l1;
+            }
+            if (i==2) {
+                length = l2;
+            }
+            if (i ==3) {
+                length = l3;
+            }
+
+            arr1 = createAlmostSortedArray(length, length/100);
+            arr2 = arr1;
+
+            t1 = System.currentTimeMillis();
+            mergesort(arr1);
+            t2 = System.currentTimeMillis();
+            mergeTime = t2-t1;
+
+            t1 = System.currentTimeMillis();
+            Quicksort(arr1);
+            t2 = System.currentTimeMillis();
+            quickTime = t2-t1;
+
+            System.out.println("For an almost sorted array of length " + length);
+            System.out.println("Swaps = " + length/100);
+            System.out.printf("Mergesort time: %d ms\n", mergeTime);
+            System.out.printf("Quicksort time: %d ms\n", quickTime);
+
+            if (mergeTime < quickTime) {
+                System.out.println("Mergesort is faster.\n");
+            } else if (quickTime < mergeTime) {
+                System.out.println("Quicksort is faster.\n");
+            } else {
+                System.out.println("Mergesort and Quicksort are equally efficient.\n");
+            }
+        }
+    }
+
+    private static Integer[] generateRandomArray(int size) {
+        Random rand = new Random();
+        Integer[] arr = new Integer[size];
+        
+        for (int i = 0; i < size; i++) {
+            arr[i] = rand.nextInt(1000000);
+        }
+        return arr;
+    }
+
+    private static Integer[] createAlmostSortedArray(int size, int maxSwaps) {
+        Random rand = new Random();
+        Integer[] arr = new Integer[size];
+        
+        // create a sorted array
+        for (int i = 0; i < size; i++) {
+            arr[i] = i;
+        }
+        
+        // perform random swaps
+        for (int i = 0; i < maxSwaps; i++) {
+            int index1 = rand.nextInt(size);
+            int index2 = rand.nextInt(size);
+            
+            int temp = arr[index1];
+            arr[index1] = arr[index2];
+            arr[index2] = temp;
+        }
+        
+        return arr;
+    }
+
+    private static long measureSortingTime(Integer[] arr, Function<Integer[], Integer[]> sortingFunction) {
+        long t1 = System.currentTimeMillis();
+        sortingFunction.apply(arr);
+        long t2 = System.currentTimeMillis();
+        return t2 - t1;
     }
 
     //MERGESORT 
@@ -173,5 +326,37 @@ public class Project2 {
             }
             a[j] = tmp;
         }
+    }
+
+    //EXTRA CREDIT
+    public static List<List<Integer>> findCollinearPoints(int[][] points) {
+        List<List<Integer>> collinearPoints = new ArrayList<List<Integer>>();
+        
+        // Sort the points by their x-coordinates
+        Arrays.sort(points, Comparator.comparingInt(a -> a[0]));
+        
+        // Loop through each set of three points
+        for (int i = 0; i < points.length - 2; i++) {
+            int[] p1 = points[i];
+            for (int j = i + 1; j < points.length - 1; j++) {
+                int[] p2 = points[j];
+                double slope = (double) (p2[1] - p1[1]) / (double) (p2[0] - p1[0]);
+                List<Integer> currentCollinearPoints = new ArrayList<Integer>();
+                currentCollinearPoints.add(i);
+                currentCollinearPoints.add(j);
+                for (int k = j + 1; k < points.length; k++) {
+                    int[] p3 = points[k];
+                    double currentSlope = (double) (p3[1] - p1[1]) / (double) (p3[0] - p1[0]);
+                    if (currentSlope == slope) {
+                        currentCollinearPoints.add(k);
+                    }
+                }
+                if (currentCollinearPoints.size() >= 4) {
+                    collinearPoints.add(currentCollinearPoints);
+                }
+            }
+        }
+        
+        return collinearPoints;
     }
 }
