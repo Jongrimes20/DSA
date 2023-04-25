@@ -9,8 +9,10 @@ public class Project3 {
      * 3.) Draw the maze and then at the press of a button, show the path.
      */
     public static void main(String[] args) {
+        //generate maze
         char[][] maze = GenerateMaze(20, 30);
-        System.out.println(maze);
+        //draw maze
+        DrawMaze(maze);
     }
 
     /*
@@ -119,11 +121,22 @@ public class Project3 {
     }
 
     /*
+     * Draw Maze
+     * @param maze - the 2D char maze returned by GenerateMaze
+     */
+    public static void DrawMaze(char[][] maze) {
+        // Draw the maze
+        for (int i = 0; i < maze.length; i++) {
+            for (int j = 0; j < maze[0].length; j++) {
+                System.out.print(maze[i][j]);
+            }
+            System.out.println();
+        }
+    }
+
+    /*
      * solveMaze
      * @param maze - the maze to solve
      */
             
 }
-
-    
-
