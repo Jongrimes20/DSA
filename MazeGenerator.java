@@ -5,7 +5,7 @@ import java.util.*;
 public class MazeGenerator {
 
 	public static class Maze 
-   {
+    { 
 		int rows, columns;
 		boolean wallHorizontal[][], wallVertical[][];
 
@@ -104,7 +104,7 @@ public class MazeGenerator {
       
 		Scanner input = new Scanner(System.in);
 
-      //Take user input
+        //Take user input
 		System.out.println("Please enter number of rows (2 or more): ");
 		rows = input.nextInt();
 		while (rows < 2) 
@@ -193,89 +193,116 @@ public class MazeGenerator {
 
         ////////////////////////////////////////////////
         //Solving
-        System.out.println("Solve Maze? Enter 1 for yes and 0 for no.");
+        System.out.println("Solve Maze? 1 for yes or 0 for no.");
         //Get input
         int solve = input.nextInt();
 
         if (solve == 1) {
-            //Directional Solution
-            List<String> cardinalDirections = solveMazeDirectional(maze);
-            //Print cardinal directions
-            System.out.print("Maze Solution in NSEW format: " + cardinalDirections);
-            //print maze with path
+            //Directional
+            System.out.println("Maze Solution in NSEW format: ");
+            solveMaze(maze);
 
-            
+            //Visual
         }else {return;}
 	}
 
-            //Cardinal Direction Solve
-            public static List<String> solveMazeDirectional(MazeGenerator.Maze maze) 
-            {
-                final int[][] DIRECTIONS = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
-                
-                int startRow = 0;
-                int startCol = 0;
-                int endRow = maze.rows - 1;
-                int endCol = maze.columns - 1;
-    
-                // Initialize the queue and visited set for the BFS algorithm
-                Queue<int[]> queue = new LinkedList<>();
-                Set<String> visited = new HashSet<>();
-                queue.add(new int[]{startRow, startCol, -1});
-                visited.add(startRow + "," + startCol);
-    
-                // Perform the BFS algorithm to find the shortest path through the maze
-                while (!queue.isEmpty()) {
-                    int[] current = queue.poll();
-                    int currentRow = current[0];
-                    int currentCol = current[1];
-                    int currentDir = current[2];
-    
-                    if (currentRow == endRow && currentCol == endCol) {
-                        // We have reached the end of the maze, so backtrack through the visited nodes to construct the path
-                        List<String> path = new ArrayList<>();
-                        while (currentDir != -1) {
-                            if (currentDir == 0) {
-                                path.add("NORTH");
-                                currentRow++;
-                            } else if (currentDir == 1) {
-                                path.add("EAST");
-                                currentCol--;
-                            } else if (currentDir == 2) {
-                                path.add("SOUTH");
-                                currentRow--;
-                            } else if (currentDir == 3) {
-                                path.add("WEST");
-                                currentCol++;
-                            }
-                            currentDir = maze.wallHorizontal[currentCol][currentRow] ? 0 : maze.wallVertical[currentCol][currentRow] ? 1 : maze.wallHorizontal[currentCol][currentRow - 1] ? 2 : 3;
-                        }
-                        Collections.reverse(path);
-                        return path;
+    //Cardinal Direction Solve
+    public static void solveMaze(Maze maze) {
+        boolean[][] visited = new boolean[maze.columns][maze.rows];
+        Stack<int[]> stack = new Stack<>();
+        int[] dx = {1, 0, -1, 0};
+        int[] dy = {0, 1, 0, -1};
+        
+        // Start from the entrance of the maze
+        int[] start = {0, 0, -1}; // x, y, direction
+        stack.push(start);
+        
+        while (!stack.isEmpty()) {
+            int[] current = stack.pop();
+            int x = current[0];
+            int y = current[1];
+            int dir = current[2];
+            
+            // Check if current position is the exit
+            if (x == maze.columns - 1 && y == maze.rows - 1) {
+                // Output the solution in cardinal direction format
+                System.out.print("Solution: ");
+                Stack<String> solution = new Stack<>();
+                while (dir != -1) {
+                    switch (dir) {
+                        case 0: solution.push("S"); break;
+                        case 1: solution.push("E"); break;
+                        case 2: solution.push("N"); break;
+                        case 3: solution.push("W"); break;
                     }
-    
-                    // Try moving in each of the four directions
-                    for (int i = 0; i < 4; i++) {
-                        int newRow = currentRow + DIRECTIONS[i][0];
-                        int newCol = currentCol + DIRECTIONS[i][1];
-                        if (newRow >= 0 && newRow < maze.rows && newCol >= 0 && newCol < maze.columns && !visited.contains(newRow + "," + newCol)) {
-                            if (i == 0 && maze.wallHorizontal[currentCol][currentRow]) {
-                                continue;
-                            } else if (i == 1 && maze.wallVertical[currentCol][currentRow]) {
-                                continue;
-                            } else if (i == 2 && maze.wallHorizontal[currentCol][currentRow + 1]) {
-                                continue;
-                            } else if (i == 3 && maze.wallVertical[currentCol + 1][currentRow]) {
-                                continue;
+                    x -= dx[dir];
+                    y -= dy[dir];
+                    dir = visited[x][y] ? getVisitedDirection(x, y, visited) : -1;
+                }
+                while (!solution.isEmpty()) {
+                    System.out.print(solution.pop());
+                }
+                System.out.println();
+                return;
+            }
+            
+            // Mark current position as visited
+            visited[x][y] = true;
+            
+            // Push unvisited neighbors to the stack
+            for (int i = 0; i < dx.length; i++) {
+                int newX = x + dx[i];
+                int newY = y + dy[i];
+                if (newX >= 0 && newX < maze.columns && newY >= 0 && newY < maze.rows) {
+                    if (dir == -1 || i == dir || i == opposite(dir)) { // only allow straight and u-turn
+                        if (i == 0 && !maze.wallHorizontal[x][y]) { // south
+                            if (!visited[x][y + 1]) {
+                                stack.push(new int[] {x, y + 1, i});
                             }
-                            queue.add(new int[]{newRow, newCol, i});
-                            visited.add(newRow + "," + newCol);
+                        } else if (i == 1 && !maze.wallVertical[x][y]) { // east
+                            if (!visited[x + 1][y]) {
+                                stack.push(new int[] {x + 1, y, i});
+                            }
+                        } else if (i == 2 && !maze.wallHorizontal[x][y - 1]) { // north
+                            if (!visited[x][y - 1]) {
+                                stack.push(new int[] {x, y - 1, i});
+                            }
+                        } else if (i == 3 && !maze.wallVertical[x - 1][y]) { // west
+                            if (!visited[x - 1][y]) {
+                                stack.push(new int[] {x - 1, y, i});
+                            }
                         }
                     }
                 }
-    
-                // If we reach this point, there is no path from the start to the end of the maze
-                return null;
             }
+        }
+        
+        // No solution found
+        System.out.println("No solution found.");
+    }
+
+    private static int getVisitedDirection(int x, int y, boolean[][] visited) {
+        if (x > 0 && visited[x - 1][y]) {
+            return 3; // west
+        } else if (y < visited[0].length - 1 && visited[x][y + 1]) {
+            return 0; // south
+        } else if (x < visited.length - 1 && visited[x + 1][y]) {
+            return 1; // east
+        } else if (y > 0 && visited[x][y - 1]) {
+            return 2; // north
+        } else {
+            return -1;
+        }
+    }
+    
+    private static int opposite(int dir) {
+        switch (dir) {
+            case 0: return 2;
+            case 1: return 3;
+            case 2: return 0;
+            case 3: return 1;
+            default: return -1;
+        }
+    }
 	
 }
